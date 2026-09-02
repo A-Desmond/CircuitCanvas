@@ -54,12 +54,4 @@ describe("WebMCP tool handlers", () => {
     expect(() => circuitToolHandlers.moveComponent({ componentId: added.componentId, space: "schematic", x: 10, y: 10 })).toThrow(/COMPONENT_LOCKED/);
   });
 
-  it("loads the dummy fixture and updates firmware through agent commands", () => {
-    const loaded = circuitToolHandlers.loadProject({ project: "dummy" });
-    expect(loaded.summary.components).toHaveLength(6);
-    const code = useProjectStore.getState().project.firmware.code.replace("#define LED_PIN 18", "#define LED_PIN 19");
-    const updated = circuitToolHandlers.updateFirmware({ code });
-    expect(updated.sync).toMatchObject({ status: "synced" });
-    expect(useProjectStore.getState().project.firmware.bindings.some((binding) => binding.controllerPinId === "GPIO19")).toBe(true);
-  });
 });

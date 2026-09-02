@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { z } from "zod";
 import { applyDomainCommand, type DomainCommand } from "@/domain/commands";
 import { getPinDefinition, normalizeESP32Pin } from "@/domain/component-definitions";
-import { createBlankProject, createDummyProject, createHeroProject } from "@/domain/project";
+import { createBlankProject, createHeroProject } from "@/domain/project";
 import type {
   ActivityEntry,
   CircuitProject,
@@ -45,7 +45,6 @@ interface ProjectStore {
   listSavedProjects(): Array<{ id: string; name: string; updatedAt: string }>;
   loadSavedProject(projectId: string): boolean;
   loadExample(): void;
-  loadDummy(): void;
   hydrate(): void;
   persist(): void;
   validate(): void;
@@ -212,10 +211,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   loadExample() {
     set({ project: createHeroProject(), past: [], future: [], activities: [] });
-  },
-
-  loadDummy() {
-    set({ project: createDummyProject(), past: [], future: [], activities: [] });
   },
 
   hydrate() {

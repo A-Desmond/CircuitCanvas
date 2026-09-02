@@ -37,7 +37,7 @@ const selectSchema = z.object({ componentId: z.string().min(1).optional() }).str
 const selectConnectionSchema = z.object({ connectionId: z.string().min(1).optional() }).strict();
 const lockSchema = z.object({ componentId: z.string().min(1), locked: z.boolean() }).strict();
 const firmwareSchema = z.object({ code: z.string().max(200_000) }).strict();
-const loadProjectSchema = z.object({ project: z.enum(["blank", "hero", "dummy"]) }).strict();
+const loadProjectSchema = z.object({ project: z.enum(["blank", "hero"]) }).strict();
 const exportSchema = z.object({ format: z.enum(["json", "svg"]) }).strict();
 const nameSchema = z.object({ name: z.string().trim().min(1).max(120) }).strict();
 const savedProjectSchema = z.object({ projectId: z.string().min(1) }).strict();
@@ -260,8 +260,8 @@ export const circuitToolHandlers = {
     const store = useProjectStore.getState();
     if (project === "blank") store.resetProject();
     else if (project === "hero") store.loadExample();
-    else store.loadDummy();
-    return { project: project === "hero" ? "hero" : project, summary: getPublicCircuitSummary() };
+    else store.loadExample();
+    return { project, summary: getPublicCircuitSummary() };
   },
   exportProject(input: unknown) {
     const { format } = exportSchema.parse(input);

@@ -167,8 +167,8 @@ export function createCircuitCanvasTools(): ModelContextTool[] {
     tool("set_view", "Open an editor view", "Switch the visible CircuitCanvas view to schematic, 3D, or code.", {
       type: "object", properties: { view: { type: "string", enum: ["schematic", "3d", "code"] } }, required: ["view"], additionalProperties: false,
     }, false, circuitToolHandlers.setView),
-    tool("load_project", "Load a project fixture", "Load the blank project, the Push Button LED hero circuit, or the expanded dummy test circuit.", {
-      type: "object", properties: { project: { type: "string", enum: ["blank", "hero", "dummy"] } }, required: ["project"], additionalProperties: false,
+    tool("load_project", "Load a project fixture", "Load the blank project or the Push Button LED starter circuit.", {
+      type: "object", properties: { project: { type: "string", enum: ["blank", "hero"] } }, required: ["project"], additionalProperties: false,
     }, false, circuitToolHandlers.loadProject),
     tool("export_project", "Export the circuit", "Download the current canonical circuit as Project JSON or a standalone schematic SVG.", {
       type: "object", properties: { format: { type: "string", enum: ["json", "svg"] } }, required: ["format"], additionalProperties: false,

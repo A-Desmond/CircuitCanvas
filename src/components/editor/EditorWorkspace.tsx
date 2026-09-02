@@ -24,7 +24,6 @@ import {
   Trash2,
   Undo2,
   Unplug,
-  Zap,
 } from "lucide-react";
 import { COMPONENT_DEFINITIONS, COMPONENT_KINDS } from "@/domain/component-definitions";
 import type { ComponentKind } from "@/domain/types";
@@ -305,8 +304,6 @@ export function EditorWorkspace() {
   const persist = useProjectStore((state) => state.persist);
   const resetProject = useProjectStore((state) => state.resetProject);
   const saveProject = useProjectStore((state) => state.saveProject);
-  const loadExample = useProjectStore((state) => state.loadExample);
-  const loadDummy = useProjectStore((state) => state.loadDummy);
   const undo = useProjectStore((state) => state.undo);
   const redo = useProjectStore((state) => state.redo);
   const validate = useProjectStore((state) => state.validate);
@@ -434,8 +431,8 @@ export function EditorWorkspace() {
             <span className="eyebrow">Agent-native electronics</span>
             <h1>Start your first circuit</h1>
             <p>Build with exact electrical state shared by the schematic, physical 3D view, firmware bindings, validation, and browser agents.</p>
-            <div className="welcome-actions"><button className="button button--primary" onClick={loadExample}><Zap size={16} /> Load Push Button LED</button><button className="button button--secondary" onClick={loadDummy}><CircuitBoard size={15} /> Load dummy test circuit</button><button className="button button--secondary" onClick={resetProject}><RotateCcw size={15} /> Start blank</button></div>
-            <div className="agent-prompt"><span>Try with a compatible browser agent</span><q>Build an ESP32 circuit where pressing a button turns on an LED.</q></div>
+            <div className="welcome-actions"><button className="button button--secondary" onClick={resetProject}><RotateCcw size={15} /> Start blank</button></div>
+            <div className="agent-prompt"><span>try with a compatible browser agent</span><q>Build an ESP32 circuit where pressing a button turns on an LED.</q></div>
           </div>
           <div className="welcome-side"><ComponentLibrary /><ActivityPanel /></div>
         </section>

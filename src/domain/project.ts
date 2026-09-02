@@ -50,17 +50,3 @@ export function createHeroProject(): CircuitProject {
   };
   return withValidation(syncCircuitToFirmware(project));
 }
-
-export function createDummyProject(): CircuitProject {
-  const project = createHeroProject();
-  project.name = "Dummy Test Circuit";
-  const power = createComponent("power-3v3", project.components, { id: "cmp_power_3v3", name: "3V3" });
-  const ground = createComponent("ground", { ...project.components, [power.id]: power }, { id: "cmp_ground", name: "GND" });
-  project.components = { ...project.components, [power.id]: power, [ground.id]: ground };
-  project.connections = {
-    ...project.connections,
-    conn_power_reference: connection("conn_power_reference", { componentId: power.id, pinId: "3V3" }, { componentId: "cmp_esp32", pinId: "3V3" }, "power"),
-    conn_ground_reference: connection("conn_ground_reference", { componentId: ground.id, pinId: "GND" }, { componentId: "cmp_esp32", pinId: "GND_1" }, "ground"),
-  };
-  return withValidation(syncCircuitToFirmware(project));
-}
