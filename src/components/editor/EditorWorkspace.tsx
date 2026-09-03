@@ -16,7 +16,6 @@ import {
   MousePointer2,
   Play,
   Redo2,
-  RotateCcw,
   Search,
   ShieldCheck,
   Save,
@@ -309,6 +308,7 @@ export function EditorWorkspace() {
   const validate = useProjectStore((state) => state.validate);
   const execute = useProjectStore((state) => state.executeCommand);
   const [agentStatus, setAgentStatus] = useState<"checking" | "ready" | "unavailable">("checking");
+  const [started, setStarted] = useState(false);
   const [validationFeedback, setValidationFeedback] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const simulation = project.ui.simulation;
@@ -406,7 +406,7 @@ export function EditorWorkspace() {
           <button className="icon-button" aria-label="Undo" disabled={!past.length} onClick={() => undo()}><Undo2 size={17} /></button>
           <button className="icon-button" aria-label="Redo" disabled={!future.length} onClick={() => redo()}><Redo2 size={17} /></button>
           <button className="button button--secondary" onClick={saveProject} aria-label="Save project"><Save size={14} /> Save</button>
-          <button className="button button--secondary" onClick={() => { if (window.confirm("Start a new blank project? Unsaved changes will be replaced.")) resetProject(); }} aria-label="Start new project"><FilePlus2 size={14} /> New</button>
+          <button className="button button--secondary" onClick={() => { if (window.confirm("Start a new project? Unsaved changes will be replaced.")) { resetProject(); setStarted(true); } }} aria-label="Start new project"><FilePlus2 size={14} /> New</button>
           <div className="export-menu">
             <button className="button button--secondary" aria-haspopup="menu" aria-expanded={exportMenuOpen} onClick={() => setExportMenuOpen((value) => !value)}><Download size={15} /> Export</button>
             {exportMenuOpen && <div className="export-menu-popover" role="menu">
@@ -424,14 +424,14 @@ export function EditorWorkspace() {
         </div>
       </header>
 
-      {componentCount === 0 ? (
+      {componentCount === 0 && !started ? (
         <section className="welcome-layout">
           <div className="welcome-card">
             <span className="welcome-icon"><CircuitBoard size={34} /></span>
             <span className="eyebrow">Agent-native electronics</span>
             <h1>Start your first circuit</h1>
             <p>Build with exact electrical state shared by the schematic, physical 3D view, firmware bindings, validation, and browser agents.</p>
-            <div className="welcome-actions"><button className="button button--secondary" onClick={resetProject}><RotateCcw size={15} /> Start blank</button></div>
+            <div className="welcome-actions"><button className="button button--primary" onClick={() => { resetProject(); setStarted(true); }}><FilePlus2 size={15} /> Start a new project</button></div>
             <div className="agent-prompt"><span>try with a compatible browser agent</span><q>Build an ESP32 circuit where pressing a button turns on an LED.</q></div>
           </div>
           <div className="welcome-side"><ComponentLibrary /><ActivityPanel /></div>

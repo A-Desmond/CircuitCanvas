@@ -1,10 +1,33 @@
 # CircuitCanvas
 
-CircuitCanvas is an agent-native beginner electronics workspace where a schematic, a simplified physical 3D view, ESP32 Arduino-style firmware bindings, deterministic validation, and browser-agent tools all share one canonical circuit project.
+**Build circuits with an AI agent that understands the board—not just the pixels.**
 
-The expanded catalog includes ESP32 DevKitC V4, LED, resistor, push button, 3.3V, 5V, and ground references, capacitor, diode, potentiometer, active buzzer, micro servo, photoresistor, and NPN transistor. Every part exposes exact labeled pins and appears in the schematic and 3D projections.
+CircuitCanvas is an agent-native electronics workspace for learning and prototyping ESP32 circuits. A person can draw a circuit, inspect it in 3D, edit Arduino-style firmware, validate common mistakes, and run a visual simulation. Through WebMCP, a browser agent can work inside that same project: it can identify exact components and pins, create or repair connections, update firmware, operate simulation inputs, explain problems visually, and save or export the result.
 
-The hackathon MVP deliberately supports one deeply integrated workflow:
+The key idea is simple: the person and the agent do not maintain separate versions of the circuit. React Flow, the 3D scene, firmware editor, validator, simulator, undo history, persistence, and WebMCP tools all read from and write to one canonical `CircuitProject`.
+
+> Suggested GitHub About description: **Agent-native ESP32 circuit design: build, wire, validate, code, simulate, and explain circuits with people and browser agents through WebMCP.**
+
+## Hackathon pitch
+
+Electronics tools are visual, but a circuit is more than a picture. It has exact components, named pins, electrical paths, firmware bindings, and safety constraints. A browser agent that only clicks coordinates or reads labels can easily connect the wrong GPIO, miss a ground path, or lose track of changes between schematic, code, and 3D views.
+
+CircuitCanvas uses WebMCP to expose the circuit's real structure and safe operations directly to the agent. This turns the browser agent into a genuine collaborator rather than a fragile UI macro. It can inspect before acting, choose pins by capability, make a change through the same command system as the user, validate the result, and point to the affected component while explaining what happened.
+
+Together, people and agents can:
+
+- build and rewire circuits using exact component and pin IDs;
+- find output-capable ESP32 pins without guessing;
+- catch missing resistors, reversed LEDs, incomplete ground paths, and invalid GPIO choices;
+- keep schematic connections and managed firmware bindings synchronized;
+- run firmware-aware visual simulations and inspect LED brightness or simulated input state;
+- adjust component properties such as resistance, sensor level, servo angle, and potentiometer position;
+- move, select, highlight, lock, delete, undo, save, load, and export projects;
+- switch between schematic, code, and physical 3D views while discussing the same underlying circuit.
+
+CircuitCanvas includes 14 component types: ESP32 DevKitC V4, LED, resistor, push button, 3.3V, 5V, ground, capacitor, diode, potentiometer, active buzzer, micro servo, photoresistor, and NPN transistor. Every component has exact labeled pins and consistent schematic and 3D representations.
+
+One supported teaching pattern is:
 
 ```text
 ESP32 GPIO18 → 220 Ω resistor → LED anode
@@ -12,7 +35,7 @@ ESP32 GND    → LED cathode
 ESP32 GPIO27 → push button → ESP32 GND
 ```
 
-The button firmware uses `INPUT_PULLUP`; pressing it drives the LED. Change `LED_PIN` from 18 to 19 inside the managed firmware block and the schematic and 3D wire endpoint update through the same domain command.
+The button firmware uses `INPUT_PULLUP`; pressing it drives the LED. Changing `LED_PIN` from 18 to 19 inside the managed firmware block also moves the canonical connection to GPIO19, so the schematic, 3D wiring, validation report, and agent-readable state remain synchronized.
 
 ## Run locally
 
@@ -47,7 +70,7 @@ Playwright uses port 3100 so it does not collide with the normal development ser
 Browser agent                 Human editor actions
       │                               │
       ▼                               ▼
-19 strict WebMCP tools ─────► Domain commands
+29 strict WebMCP tools ─────► Domain commands
                                      │
                                      ▼
                             Canonical CircuitProject
@@ -73,33 +96,47 @@ Important modules:
 
 ## Why WebMCP matters
 
-Without WebMCP, a browser agent would need to infer component identity, pins, topology, and editor state from pixels and DOM layout. CircuitCanvas instead exposes exact structured operations. An agent can read electrical state, choose compatible pins, mutate the same project as the user, validate its work, change the visible view, highlight parts during an explanation, and undo a mutation.
+WebMCP is a particularly strong fit for CircuitCanvas because the meaning of a circuit is hidden behind its visual layout. Two wires can look almost identical while terminating on electrically different pins. DOM scraping can find labels, but it cannot reliably answer questions such as “Does this LED have a path to ground?”, “Which unused GPIO can drive an output?”, or “Which circuit connection owns this firmware symbol?”
 
-The application registers these tools with the current imperative `document.modelContext` API. The tool set mirrors human project actions, so an agent can build, inspect, rewire, move, select, lock, edit firmware, validate, switch views, load fixtures, export, and undo:
+CircuitCanvas already has a typed graph and deterministic command layer for answering those questions. WebMCP exposes that domain intelligence to browser agents as strict, task-oriented tools. The result is more reliable than coordinate-based automation and more transparent than handing the entire project to an opaque model: tool calls appear in the Agent Activity panel, mutations share human undo history, and deterministic validation checks every electrical change.
+
+The app registers 29 tools with the current imperative `document.modelContext` API:
 
 ```text
-get_circuit_summary       get_component_details
-get_available_pins        add_component
-remove_component          connect_components
-disconnect_components     update_component_property
-move_component            select_component
-select_connection         set_component_lock
-update_firmware           validate_circuit
-highlight_component       set_view
-load_project              export_project
-undo_last_action
+Read and inspect                 Build and edit
+get_circuit_summary             add_component
+get_component_details           remove_component
+get_available_pins              connect_components
+get_simulation_state            disconnect_components
+list_saved_projects             update_component_property
+                                 move_component
+Firmware and simulation         set_component_lock
+update_firmware                 set_potentiometer_wiper
+validate_circuit                set_project_name
+run_simulation                  set_simulation_input
+stop_simulation
+
+Navigate and explain            Project lifecycle
+select_component                save_project
+select_connection               load_saved_project
+clear_selection                 load_project
+highlight_component             export_project
+set_view                        undo_last_action
 ```
 
-Every tool has a strict JSON Schema, validated runtime input, safe compact output, read-only annotations where appropriate, shared domain-command execution, and a visible activity entry. The editor remains fully functional when WebMCP is unavailable.
+Every tool has a strict JSON Schema, Zod-validated runtime input, compact structured output, read-only annotations where appropriate, shared domain-command execution, and a visible activity entry. The editor remains fully functional when WebMCP is unavailable, making WebMCP an enhancement to the human experience rather than a dependency for basic editing.
 
-### Test WebMCP in Chrome
+### Testing instructions
 
-1. Use a Chrome build that implements the current WebMCP origin trial/testing API.
-2. Enable the WebMCP testing flag documented by Chrome and relaunch.
-3. Run CircuitCanvas over localhost or a compatible HTTPS origin.
-4. Confirm the header says **Agent tools ready**.
-5. Inspect the 19 registered tools with Chrome's supported tool inspector.
-6. Run the prompts in [`docs/webmcp-evals.md`](./docs/webmcp-evals.md).
+No credentials are required.
+
+1. Open the project URL in a WebMCP-compatible Chrome browser with the WebMCP testing feature enabled, or open it in the ChatGPT app.
+2. Click **Start a new project** or use the existing circuit.
+3. Add components from the library and connect their labeled pins.
+4. Use **Validate** and **Run** to inspect the circuit and simulation.
+5. Switch between **Design**, **Code**, and **3D** views.
+6. To test the agent experience, confirm the header shows **Agent tools ready**, then ask the browser agent or ChatGPT to inspect, modify, validate, simulate, or explain the circuit.
+7. Run the prompts in [`docs/webmcp-evals.md`](./docs/webmcp-evals.md).
 
 WebMCP is isolated behind feature detection and an `AbortController` registration lifecycle. The deprecated `navigator.modelContext` API is not used.
 
@@ -133,7 +170,7 @@ The deterministic validator checks:
 
 The score is labeled **Beginner Circuit Health**, never an electrical safety score.
 
-> CircuitCanvas checks supported beginner circuit patterns. It is not an electrical simulation engine or a substitute for professional electrical design or safety review.
+CircuitCanvas includes a deliberately small firmware-aware visual simulator for supported Arduino-style `digitalRead` and `digitalWrite` patterns. It visualizes energized connections, LED output state, and potentiometer-controlled brightness; it is not a SPICE simulator or a substitute for professional electrical design and safety review.
 
 ## Persistence and debugging
 
@@ -167,3 +204,7 @@ This reveals project schema, IDs, last command/origin, bindings, managed hash, s
 - [ESP32-DevKitC V4 guide](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/esp32-devkitc/user_guide.html)
 
 Asset details are recorded in [`public/assets/ATTRIBUTION.md`](./public/assets/ATTRIBUTION.md).
+
+## License
+
+CircuitCanvas is open-source software licensed under the [MIT License](./LICENSE).
